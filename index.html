@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MediCare AI: your health records, finally in one place</title>
+<meta name="description" content="MediCare AI keeps your records, labs, medicines and reminders together, and answers questions only from what you've recorded, with every answer cited.">
+<meta name="theme-color" content="#09090b">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2338bfa7'/%3E%3Cpath d='M5 17h5l3-7 5 13 3-6h6' fill='none' stroke='%2309090b' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09090b; --card:#0f0f12; --card2:#131317; --line:#27272a; --line2:#3f3f46;
+  --fg:#fafafa; --mut:#a1a1aa; --dim:#71717a;
+  --teal:#38bfa7; --teal-d:#157873; --amber:#f5b94a; --lav:#a99bff;
+  --r:14px;
+  --sans:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth;background:var(--bg);color-scheme:dark}
+body{font-family:var(--sans);background:var(--bg);color:var(--fg);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:8px}
+.wrap{width:min(1120px,100% - 40px);margin-inline:auto}
+
+/* backdrop: grid + one teal glow */
+.bg{position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+   radial-gradient(60% 45% at 50% -5%,rgba(56,191,167,.17),transparent 70%),
+   linear-gradient(var(--line) 1px,transparent 1px) 0 0/56px 56px,
+   linear-gradient(90deg,var(--line) 1px,transparent 1px) 0 0/56px 56px;
+  -webkit-mask-image:radial-gradient(75% 60% at 50% 0%,#000 20%,transparent 75%);
+  mask-image:radial-gradient(75% 60% at 50% 0%,#000 20%,transparent 75%);opacity:.55}
+
+/* nav */
+nav{position:sticky;top:0;z-index:20;backdrop-filter:blur(14px);background:rgba(9,9,11,.6);border-bottom:1px solid rgba(39,39,42,.7)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:-.01em}
+.logo i{width:28px;height:28px;border-radius:8px;background:var(--teal);display:grid;place-items:center}
+.logo svg{width:18px;height:18px}
+.navlinks{display:flex;gap:26px;color:var(--mut);font-size:14px}
+.navlinks a:hover{color:var(--fg)}
+.btn{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px;border-radius:10px;font:500 14px var(--sans);border:1px solid var(--line2);background:transparent;color:var(--fg);cursor:pointer;transition:background .15s,border-color .15s,transform .15s}
+.btn:hover{background:#18181b;border-color:#52525b}
+.btn.pri{background:var(--fg);color:#09090b;border-color:var(--fg)}
+.btn.pri:hover{background:#e4e4e7}
+.btn.lg{height:48px;padding:0 22px;font-size:15px;border-radius:12px}
+.btn svg{width:16px;height:16px}
+
+/* hero */
+.hero{padding:84px 0 40px;text-align:center}
+.pill{display:inline-flex;align-items:center;gap:9px;padding:6px 14px 6px 10px;border:1px solid var(--line2);border-radius:99px;background:rgba(24,24,27,.7);font-size:13px;color:var(--mut)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 0 rgba(56,191,167,.6);animation:ping 2s infinite}
+@keyframes ping{70%{box-shadow:0 0 0 9px rgba(56,191,167,0)}100%{box-shadow:0 0 0 0 rgba(56,191,167,0)}}
+h1{font-size:clamp(40px,7vw,78px);line-height:1.02;letter-spacing:-.045em;font-weight:600;margin:26px auto 0;max-width:15ch;
+  background:linear-gradient(180deg,#fff 30%,#8b8b95);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{max-width:56ch;margin:22px auto 0;color:var(--mut);font-size:clamp(16px,2vw,19px)}
+.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+.fine{margin-top:18px;font-size:13px;color:var(--dim)}
+
+/* the demo: assistant window */
+.stage{margin:56px auto 0;max-width:820px;text-align:left;position:relative}
+.stage::before{content:"";position:absolute;inset:-1px;border-radius:19px;padding:1px;
+  background:conic-gradient(from var(--a,0deg),transparent 0 70%,var(--teal) 85%,transparent 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:spin 7s linear infinite}
+@property --a{syntax:"<angle>";initial-value:0deg;inherits:false}
+@keyframes spin{to{--a:360deg}}
+.win{position:relative;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,#0f0f12,#0b0b0e);overflow:hidden;box-shadow:0 40px 90px -30px rgba(56,191,167,.18)}
+.bar{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);font-size:13px;color:var(--dim)}
+.bar b{width:10px;height:10px;border-radius:50%;background:#2a2a2f}
+.bar span{margin-left:8px}
+.chat{padding:22px;display:grid;gap:16px;min-height:372px;align-content:start}
+.q{justify-self:end;max-width:78%;background:#1c1c21;border:1px solid var(--line);padding:11px 15px;border-radius:14px 14px 4px 14px;font-size:15px}
+.a{max-width:92%;font-size:15px;color:#d4d4d8}
+.a p{margin-bottom:12px}
+.cite{display:inline-block;font:500 11px var(--mono);color:var(--teal);background:rgba(56,191,167,.12);border:1px solid rgba(56,191,167,.3);padding:0 6px;border-radius:6px;margin-left:3px;vertical-align:1px}
+.ev{display:grid;gap:8px;margin:4px 0 12px}
+.ev div{display:flex;justify-content:space-between;gap:12px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card2);font-size:13px}
+.ev em{font-style:normal;font:400 12px var(--mono);color:var(--dim)}
+.ev strong{font-weight:500}
+.note{font-size:12.5px;color:var(--dim);border-top:1px dashed var(--line2);padding-top:10px}
+.type{display:inline-flex;gap:4px;padding:6px 0}
+.type i{width:6px;height:6px;border-radius:50%;background:var(--dim);animation:bl 1s infinite}
+.type i:nth-child(2){animation-delay:.15s}.type i:nth-child(3){animation-delay:.3s}
+@keyframes bl{50%{opacity:.25}}
+.step{opacity:0;transform:translateY(6px);transition:opacity .45s,transform .45s}
+.step.on{opacity:1;transform:none}
+.step.gone{display:none}
+
+/* sections */
+section{padding:96px 0 0}
+h2{font-size:clamp(28px,4.4vw,46px);letter-spacing:-.035em;line-height:1.08;font-weight:600;max-width:20ch}
+.lead{color:var(--mut);max-width:52ch;margin-top:14px;font-size:17px}
+
+/* bento */
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-top:44px}
+.card{position:relative;border:1px solid var(--line);border-radius:var(--r);background:var(--card);padding:26px;overflow:hidden;isolation:isolate}
+.card::before{content:"";position:absolute;inset:0;z-index:-1;opacity:0;transition:opacity .25s;
+  background:radial-gradient(380px circle at var(--x,50%) var(--y,50%),rgba(56,191,167,.13),transparent 60%)}
+.card:hover::before{opacity:1}
+.card::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .25s;border:1px solid rgba(56,191,167,.35);
+  -webkit-mask:radial-gradient(260px circle at var(--x,50%) var(--y,50%),#000,transparent);mask:radial-gradient(260px circle at var(--x,50%) var(--y,50%),#000,transparent)}
+.card:hover::after{opacity:1}
+.c2{grid-column:span 2}.c3{grid-column:span 3}.c4{grid-column:span 4}
+.card h3{font-size:19px;letter-spacing:-.02em;font-weight:600}
+.card p{color:var(--mut);margin-top:8px;font-size:15px;max-width:46ch}
+.ico{width:38px;height:38px;border-radius:10px;border:1px solid var(--line2);display:grid;place-items:center;margin-bottom:18px;background:var(--card2);color:var(--teal)}
+.ico svg{width:19px;height:19px}
+.viz{margin-top:22px}
+
+/* lab flag viz */
+.lab{display:grid;gap:10px}
+.lab div{display:grid;grid-template-columns:90px 1fr 76px;gap:12px;align-items:center;font-size:13px;color:var(--mut)}
+.rng{height:8px;border-radius:9px;background:#1c1c21;position:relative}
+.rng::before{content:"";position:absolute;left:28%;right:24%;top:0;bottom:0;background:rgba(56,191,167,.28);border-radius:9px}
+.rng i{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);box-shadow:0 0 0 4px rgba(9,9,11,.9)}
+.tag{font:500 11px var(--mono);padding:2px 8px;border-radius:6px;text-align:center;border:1px solid var(--line2);color:var(--mut)}
+.tag.hi{color:var(--amber);border-color:rgba(245,185,74,.4);background:rgba(245,185,74,.08)}
+
+/* doses viz */
+.doses{display:grid;gap:8px}
+.dose{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card2);font-size:14px}
+.dose span{color:var(--dim);font:12px var(--mono)}
+.chk{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line2);background:transparent;cursor:pointer;display:grid;place-items:center;color:transparent;transition:.15s}
+.chk.on{background:var(--teal);border-color:var(--teal);color:#09090b}
+.chk svg{width:12px;height:12px}
+.hint{font-size:12.5px;color:var(--dim);margin-top:10px}
+
+/* safety viz */
+.res{display:flex;gap:8px;flex-wrap:wrap}
+.res span{font:500 12px var(--mono);padding:5px 10px;border-radius:8px;border:1px solid var(--line2);color:var(--mut)}
+.res .no{text-decoration:line-through;color:var(--dim);border-style:dashed}
+.res .ok{color:var(--lav);border-color:rgba(169,155,255,.4);background:rgba(169,155,255,.08)}
+
+/* languages */
+.langs{display:flex;gap:10px;flex-wrap:wrap}
+.langs span{padding:10px 16px;border:1px solid var(--line2);border-radius:10px;background:var(--card2);font-size:20px}
+.langs small{display:block;font:11px var(--mono);color:var(--dim);margin-top:2px}
+
+/* principles */
+.rules{margin-top:44px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);display:grid;grid-template-columns:repeat(3,1fr)}
+.rules div{padding:28px;border-right:1px solid var(--line)}
+.rules div:last-child{border:0}
+.rules h3{font-size:17px;letter-spacing:-.015em;font-weight:600}
+.rules p{color:var(--mut);font-size:14.5px;margin-top:8px}
+
+/* final cta */
+.final{margin:96px auto 0;text-align:center;padding:64px 24px;border:1px solid var(--line);border-radius:22px;position:relative;overflow:hidden;
+  background:radial-gradient(70% 90% at 50% 120%,rgba(56,191,167,.22),transparent 70%),var(--card)}
+.final h2{margin:0 auto}
+.final p{color:var(--mut);margin:14px auto 0;max-width:46ch}
+footer{padding:40px 0 48px;margin-top:64px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+/* waitlist form */
+.wl{max-width:520px;margin:30px auto 0;display:grid;gap:12px;text-align:left}
+.wl label{display:grid;gap:6px;font-size:13px;color:var(--mut)}
+.wl label small{color:var(--dim)}
+.wl input{height:46px;border-radius:10px;border:1px solid var(--line2);background:#0b0b0e;color:var(--fg);padding:0 14px;font:400 15px var(--sans);transition:border-color .15s,box-shadow .15s}
+.wl input::placeholder{color:#52525b}
+.wl input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(56,191,167,.18)}
+.wl .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.wl .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.wl button{margin-top:6px;justify-content:center;width:100%}
+.wl button[disabled]{opacity:.6;cursor:wait}
+.wl .msg{min-height:20px;font-size:13.5px;text-align:center;color:var(--dim)}
+.wl .msg.err{color:#f87171}
+.wl .consent{font-size:12.5px;color:var(--dim);text-align:center}
+.done{display:none;margin:30px auto 0;max-width:460px;padding:22px;border:1px solid rgba(56,191,167,.4);border-radius:14px;background:rgba(56,191,167,.07)}
+.done strong{display:block;font-size:18px;letter-spacing:-.015em}
+.done span{color:var(--mut);font-size:14.5px}
+.final.ok .wl{display:none}.final.ok .done{display:block}
+@media(max-width:560px){.wl .two{grid-template-columns:1fr}}
+
+@media(max-width:860px){
+  .navlinks{display:none}
+  .c2,.c3,.c4{grid-column:span 6}
+  .rules{grid-template-columns:1fr}.rules div{border-right:0;border-bottom:1px solid var(--line)}.rules div:last-child{border:0}
+  .hero{padding-top:60px}
+  .lab div{grid-template-columns:70px 1fr 70px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .step{opacity:1;transform:none}.step.gone{display:none}
+}
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+
+<nav>
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="MediCare AI home">
+      <i><svg viewBox="0 0 24 24" fill="none" stroke="#09090b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13h5l2.5-6 5 12 2.5-6H22"/></svg></i>
+      MediCare AI
+    </a>
+    <div class="navlinks"><a href="#features">What it does</a><a href="#principles">How it behaves</a><a href="#launch">Launch</a></div>
+    <a class="btn pri" href="https://129-225-125-150.sslip.io/" target="_blank" rel="noopener">Open the app</a>
+  </div>
+</nav>
+
+<main id="top">
+<header class="hero wrap">
+  <div class="pill"><span class="dot"></span>Launching soon. The early build is live.</div>
+  <h1>Your health, in one place that shows its work.</h1>
+  <p class="sub">Records, lab results, medicines and reminders together. Ask a question and MediCare AI answers only from what you've recorded, with every line cited. No evidence, no answer.</p>
+  <div class="cta">
+    <a class="btn pri lg" href="https://129-225-125-150.sslip.io/" target="_blank" rel="noopener">Try the live app
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+    <a class="btn lg" href="#launch">Get notified at launch</a>
+  </div>
+  <p class="fine">The live app runs on synthetic demo data. Don't enter real health records yet.</p>
+
+  <div class="stage" aria-label="Example of the MediCare AI assistant answering from cited records">
+    <div class="win">
+      <div class="bar"><b></b><b></b><b></b><span>Assistant · records, labs and medicines switched on</span></div>
+      <div class="chat" id="chat">
+        <div class="q step" data-s="1">Has my HbA1c changed since the spring?</div>
+        <div class="a step" data-s="2"><span class="type"><i></i><i></i><i></i></span></div>
+        <div class="a step" data-s="3">
+          <p>Your HbA1c was 7.4% on 12 Mar and 6.9% on 18 Sep, both in the same unit, so they can be compared.<span class="cite">E1</span><span class="cite">E2</span> Metformin is recorded as active across both dates.<span class="cite">E3</span></p>
+          <div class="ev">
+            <div><strong>E1 · Lab result</strong><em>HbA1c 7.4% · 12 Mar · patient reported</em></div>
+            <div><strong>E2 · Lab result</strong><em>HbA1c 6.9% · 18 Sep · verified</em></div>
+            <div><strong>E3 · Medicine</strong><em>Metformin · active</em></div>
+          </div>
+          <p class="note">This shows association, not cause. Your clinician can interpret it. Demo data.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="features" class="wrap">
+  <h2>Everything you manage, finally talking to each other.</h2>
+  <p class="lead">Built around how people actually deal with their health: a pile of PDFs, a few pill boxes and a lot of remembering.</p>
+
+  <div class="bento">
+    <article class="card c4">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2M8 12h8"/></svg></div>
+      <h3>Snap a report, review it, save it</h3>
+      <p>Photograph a lab report and the form fills itself, read on the server with Tesseract. Nothing is saved until you check it and press Save. Each result is flagged against the range printed on your report.</p>
+      <div class="viz lab">
+        <div>Hemoglobin<span class="rng"><i style="left:52%"></i></span><span class="tag">in range</span></div>
+        <div>LDL<span class="rng"><i style="left:86%"></i></span><span class="tag hi">above</span></div>
+        <div>TSH<span class="rng"><i style="left:40%"></i></span><span class="tag">in range</span></div>
+      </div>
+    </article>
+
+    <article class="card c2">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.2 4.2 0 0 0-6-6l-10 10a4.2 4.2 0 0 0 6 6ZM8.5 8.5l7 7"/></svg></div>
+      <h3>Doses you confirm</h3>
+      <p>Tap to log. Nothing is ever marked taken for you.</p>
+      <div class="viz doses" id="doses">
+        <div class="dose">Metformin 500 mg <span>08:00</span><button class="chk on" aria-label="Taken" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></button></div>
+        <div class="dose">Vitamin D <span>13:00</span><button class="chk" aria-label="Mark taken" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></button></div>
+        <div class="dose">Metformin 500 mg <span>20:00</span><button class="chk" aria-label="Mark taken" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></button></div>
+      </div>
+      <p class="hint">Try it. Tap a box.</p>
+    </article>
+
+    <article class="card c2">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.4 8 8 9 4.6-1 8-4 8-9V6l-8-3Z"/><path d="M12 8v4M12 15.5v.01"/></svg></div>
+      <h3>Safety checks that stay honest</h3>
+      <p>Medicine, food, condition and allergy checks with sourced rules.</p>
+      <div class="viz res"><span class="no">safe</span><span class="ok">findings</span><span>no matching record</span><span>insufficient data</span></div>
+      <p class="hint">There is no "safe" result, on purpose.</p>
+    </article>
+
+    <article class="card c2">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3ZM5 11a7 7 0 0 0 14 0M12 18v3"/></svg></div>
+      <h3>Speaks your language</h3>
+      <p>Voice dictation and read-aloud, off until you switch them on.</p>
+      <div class="viz langs"><span>English<small>en-IN</small></span><span>हिन्दी<small>hi-IN</small></span><span>ଓଡ଼ିଆ<small>or-IN</small></span></div>
+    </article>
+
+    <article class="card c2">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></div>
+      <h3>Share with a code, revoke any time</h3>
+      <p>Consent-based links that need a recipient code. Every view lands in an access log you can read.</p>
+    </article>
+
+    <article class="card c2">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v8M8 12h8"/><rect x="3" y="3" width="18" height="18" rx="4"/></svg></div>
+      <h3>An emergency summary, minimum necessary</h3>
+      <p>Allergies, conditions and contacts in one view. Nothing more than a responder needs.</p>
+    </article>
+  </div>
+</section>
+
+<section id="principles" class="wrap">
+  <h2>It's built to say "I don't know."</h2>
+  <p class="lead">Most health apps guess. This one is designed around what it refuses to do.</p>
+  <div class="rules">
+    <div><h3>No records, no answer</h3><p>The assistant reads only what you've switched on, and only while your consent is granted. If it finds nothing, it says so instead of answering from general knowledge.</p></div>
+    <div><h3>It can't change your care</h3><p>Starting, stopping or changing a medicine, and diagnosis requests, get a pointer to your clinician. Urgent symptoms get emergency guidance, not a chat.</p></div>
+    <div><h3>Sources on everything</h3><p>Every finding carries its source, version and review date. Out-of-date data is labelled, never hidden.</p></div>
+  </div>
+</section>
+
+<section id="launch" class="wrap">
+  <div class="final" id="final">
+    <h2>Launching soon. Hear about it first.</h2>
+    <p>Leave your details and we'll reach out the day MediCare AI launches. That's the only thing we'll contact you about.</p>
+    <form class="wl" id="wl" novalidate>
+      <div class="two">
+        <label>Name<input name="name" type="text" autocomplete="name" placeholder="Your name" required maxlength="80"></label>
+        <label>Phone <small>(optional)</small><input name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+91 98765 43210" maxlength="20"></label>
+      </div>
+      <label>Email<input name="email" type="email" autocomplete="email" placeholder="you@example.com" required maxlength="120"></label>
+      <input class="hp" name="company" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button class="btn pri lg" type="submit" id="wlbtn">Notify me at launch</button>
+      <p class="msg" id="wlmsg" role="status" aria-live="polite"></p>
+      <p class="consent">We'll only use these details to tell you about the launch.</p>
+    </form>
+    <div class="done" role="status"><strong>You're on the list.</strong><span>We'll reach out as soon as MediCare AI launches.</span></div>
+    <div class="cta" style="margin-top:22px">
+      <a class="btn" href="https://129-225-125-150.sslip.io/" target="_blank" rel="noopener">Try the early build now
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 MediCare AI</span>
+    <span>Academic build. Not a medical device. Synthetic data only.</span>
+  </div>
+</footer>
+
+<script>
+// assistant demo: plays once on load
+(function(){
+  var s=[].slice.call(document.querySelectorAll('.step'));
+  var by=function(n){return s.filter(function(e){return e.dataset.s==n})[0]};
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){by(2).classList.add('gone');s.forEach(function(e){e.classList.add('on')});return}
+  setTimeout(function(){by(1).classList.add('on')},600);
+  setTimeout(function(){by(2).classList.add('on')},1500);
+  setTimeout(function(){by(2).classList.remove('on');by(2).classList.add('gone');by(3).classList.add('on')},3100);
+})();
+
+// spotlight follows the cursor on cards
+document.querySelectorAll('.card').forEach(function(c){
+  c.addEventListener('pointermove',function(e){
+    var r=c.getBoundingClientRect();
+    c.style.setProperty('--x',(e.clientX-r.left)+'px');
+    c.style.setProperty('--y',(e.clientY-r.top)+'px');
+  });
+});
+
+// dose toggles
+document.querySelectorAll('.chk').forEach(function(b){
+  b.addEventListener('click',function(){
+    var on=b.classList.toggle('on');
+    b.setAttribute('aria-pressed',on);
+    b.setAttribute('aria-label',on?'Taken':'Mark taken');
+  });
+});
+// waitlist: posts to a Google Apps Script web app that appends a row to your Sheet
+var WAITLIST_URL="https://script.google.com/macros/s/AKfycbzQqmL5PoOh25pT4lUcyEPyF3SGFLLCvvVpo20eoHt_yDXnb8NNeJlYCGOtq51W5FqL/exec";
+(function(){
+  var f=document.getElementById('wl'),btn=document.getElementById('wlbtn'),msg=document.getElementById('wlmsg');
+  function say(t,err){msg.textContent=t;msg.className='msg'+(err?' err':'')}
+  f.addEventListener('submit',function(e){
+    e.preventDefault();
+    var d=new FormData(f);
+    if(d.get('company'))return; // bot trap
+    var name=(d.get('name')||'').trim(),email=(d.get('email')||'').trim(),phone=(d.get('phone')||'').trim();
+    if(!name){say('Enter your name.',1);return}
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){say('Enter a valid email address.',1);return}
+    if(phone&&!/^[+\d][\d\s().-]{6,18}$/.test(phone)){say('Enter a valid phone number, or leave it empty.',1);return}
+    if(WAITLIST_URL.indexOf('PASTE_')===0){say("The waitlist isn't connected yet.",1);return}
+    btn.disabled=true;say('Saving…');
+    fetch(WAITLIST_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({name:name,email:email,phone:phone,source:location.hostname})})
+      .then(function(){document.getElementById('final').classList.add('ok')})
+      .catch(function(){btn.disabled=false;say("Couldn't save that. Check your connection and try again.",1)});
+  });
+})();
+</script>
+</body>
+</html>
